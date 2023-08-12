@@ -15,6 +15,15 @@ const UserSchema = new Schema({
     required: true,
   },
 
+  sub_category: {
+    type: String,
+    required : true,
+  },
+
+  sub_sub_category :{
+      type : String
+  },
+
   image: {
     type: String,
     required: true,

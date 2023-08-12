@@ -24,7 +24,7 @@ router.post(
   async (req, res) => {
     try {
       let success = false;
-      const { product_name, category, image, price, quantity, description } =
+      const { product_name, category,sub_category,sub_sub_category, image, price, quantity, description } =
         req.body;
 
       // console.log((req.body));
@@ -32,6 +32,8 @@ router.post(
       const product = new Product({
         product_name,
         category,
+        sub_category,
+        sub_sub_category,
         image,
         quantity,
         price,
@@ -61,6 +63,8 @@ router.put('/updateProduct/:id', async (req, res) => {
       const {
           u_product_name,
           u_category,
+          u_sub_category,
+          u_sub_sub_category,
           u_image,
           u_price,
           u_quantity,
@@ -71,6 +75,8 @@ router.put('/updateProduct/:id', async (req, res) => {
       const newProduct = {};
       if (u_product_name) newProduct.product_name = u_product_name;
       if (u_category) newProduct.category = u_category;
+      if (u_sub_category) newProduct.category = u_sub_category;
+      if (u_sub_sub_category) newProduct.category = u_sub_sub_category;
       if (u_image) newProduct.image = u_image;
       if (u_price) newProduct.price = u_price;
       if (u_quantity) newProduct.quantity = u_quantity;
@@ -85,7 +91,9 @@ router.put('/updateProduct/:id', async (req, res) => {
 
       const updateObject = {};
       if (u_product_name) updateObject.product_name = u_product_name;
-      if (u_category) updateObject.category = u_category;
+      if (u_category) updateObject.category = u_category; 
+      if (u_sub_category) updateObject.category = u_sub_category; 
+      if (u_sub_sub_category) updateObject.category = u_sub_sub_category; 
       if (u_image) updateObject.image = u_image;
       if (u_price) updateObject.price = u_price;
       if (u_quantity) updateObject.quantity = u_quantity;
