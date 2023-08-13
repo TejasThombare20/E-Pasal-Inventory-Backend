@@ -1,15 +1,20 @@
 const getconnection = require('./db')
 const express = require('express')
-var cors = require('cors')
+const cors = require('cors')
 const dotenv = require('dotenv');
 dotenv.config();
 
 
 getconnection();
 const app = express()
- const port = process.env.PORT;
- app.use(cors())
-
+const port = process.env.PORT;
+const corsOptions ={
+    origin:'http://localhost:3000', 
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200
+}
+app.use(cors(corsOptions));
+ 
 
  app.get('/', (req, res) => {
    res.send('Hello World!')
