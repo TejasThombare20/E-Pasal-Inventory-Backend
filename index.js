@@ -9,7 +9,7 @@ getconnection();
 const app = express()
 const port = process.env.PORT;
 const corsOptions ={
-    origin:'http://localhost:3000', 
+    origin:'https://e-pasal-inventory-frontend.vercel.app', 
     credentials:true,            //access-control-allow-credentials:true
     optionSuccessStatus:200
 }
