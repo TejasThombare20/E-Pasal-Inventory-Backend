@@ -23,6 +23,7 @@ app.use(express.json());
 
 app.use('/api/auth', require("./Routes/Authentication"));
 app.use('/api/product', require("./Routes/Product_op"));
+app.use('/api/category', require("./Routes/Category_op"));
   
 
  app.listen(port, () => {
