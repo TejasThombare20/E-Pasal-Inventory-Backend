@@ -151,7 +151,26 @@ paths:
                 properties:
                   product:
                     $ref: '#/components/schemas/Product'
-                    
+  
+  /product/list:
+    get:
+      tags:
+        - Product
+      summary: Get the list of all products
+      responses:
+        200:
+          description: Successfully retrieved all products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  categories: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'                    
                     
   /category:
     post:
@@ -352,7 +371,7 @@ paths:
       summary: Get the list of all sections
       responses:
         200:
-          description: Successfully retrieved all categories
+          description: Successfully retrieved all sections
           content:
             application/json:
               schema:
@@ -458,7 +477,7 @@ paths:
       summary: Get the list of all sub-sections
       responses:
         200:
-          description: Successfully retrieved all categories
+          description: Successfully retrieved all sub-sections
           content:
             application/json:
               schema:
@@ -564,7 +583,7 @@ paths:
       summary: Get the list of all units
       responses:
         200:
-          description: Successfully retrieved all categories
+          description: Successfully retrieved all units
           content:
             application/json:
               schema:
