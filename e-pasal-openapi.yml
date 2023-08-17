@@ -1,0 +1,728 @@
+openapi: 3.0.3
+info:
+  title: Swagger E-Pasal Product Library - OpenAPI 3.0
+  description: |-
+    This is the design for E-Pasal Backend Application for Product Library.
+    
+    NOTE:-
+      - All properties starting with "_" should not be provided by user in any request, until speicifically mentioned in the description.
+
+  contact:
+    email: vishnu@vishnuworld.com
+  version: 0.0.1
+servers:
+  - url: https://e-pasal.onrender.com/api
+tags:
+  - name: Product
+    description: Everything about products
+  - name: user
+    description: Operations about user
+paths:
+  /auth/createuser:
+    post:
+      tags:
+        - user
+      summary: Signup user and returns JWT Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Successfully created the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authtoken:
+                    type: string
+                    description: JWT Token
+
+  /auth/login:
+    post:
+      tags:
+        - user
+      summary: Sign-in user and returns JWT Token
+      description: The POST /login endpoint validates user email and password, then generates an authentication token if credentials are correct. It returns a success flag and the token, or an error message for invalid credentials.
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                passward:
+                  type: string
+      responses:
+        '200':
+          description: 'Successfullly Signed in'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  authtoken:
+                    type: string
+                    description: JWT Token
+                
+  /product/addProduct:
+    post:
+      tags:
+        - Product
+      summary: Add a new product
+      description: Adds a new product to the database with provided details. Responds with success status and saved product data or sends a 500 error in case of issues
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: 'Successfully added a new product'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  savedProduct:
+                    $ref: '#/components/schemas/Product'
+      
+  /product/deleteProduct/{id}:
+    delete:
+      tags:
+        - Product
+      summary: Deletes the product with given product id
+      description: Deletes a product based on the provided id. Validates the id and deletes the product if found. Responds with success status and deleted product details or appropriate error messages. Handles invalid IDs, missing products, and errors with appropriate responses.
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the product want to delete.
+      responses:
+        '200':
+          description: 'Successfully deleted the product'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: "Product has been deleted."
+                  product:
+                    $ref: '#/components/schemas/Product'
+  
+  /product/updateProduct/{id}:
+    put:
+      tags:
+        - Product
+      summary: Update an existing product
+      description: Updates an existing product using the provided id. Constructs an updated product object from provided details. Fetches and updates the product with the specified id, responding with updated product data. Handles errors with appropriate responses.
+
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the product want to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: 'Successfully updated the product'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+                    
+                    
+  /category:
+    post:
+      tags:
+        - Category
+      summary: Add a new category
+      description: |-
+        Checks if the category with same name exists and if not adds the new category.
+        
+        
+        NOTE:- Here save all categories in lowercase
+      
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      
+      responses:
+        200:
+          description: Successfully created a new category.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: boolean
+                    example: true
+                  category:
+                    $ref: '#/components/schemas/Category'
+    
+    put:
+      tags:
+        - Category
+      summary: Updates an existing category
+      description: |-
+        NOTE:- Here provide the '_id' tag in request.
+        
+        Updates the category name, of existing '_id'.
+      
+      requestBody:
+        content:
+          application/body:
+            schema:
+              $ref: '#/components/schemas/Category'
+      
+      responses:
+        200:
+          description: Successfully updated the category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  category:
+                    $ref: '#/components/schemas/Category'
+                    
+  /category/{id}:
+    delete:
+      tags:
+        - Category
+      summary: Delete an existing category by Id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the Category want to delete
+      
+      responses:
+        200:
+          description: Successfully deleted the Category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
+                    $ref: '#/components/schemas/Category'
+
+  /category/list:
+    get:
+      tags:
+        - Category
+      summary: Get the list of all categories
+      responses:
+        200:
+          description: Successfully retrieved all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  categories: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+  
+  /section:
+    post:
+      tags:
+        - Section
+      summary: Add a new section
+      description: |-
+        Checks if the section with same name and category_id exists and if not adds the new section.
+        
+        
+        NOTE:- Here save all categories in lowercase
+      
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Section'
+      
+      responses:
+        200:
+          description: Successfully created a new section.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: boolean
+                    example: true
+                  section:
+                    $ref: '#/components/schemas/Section'
+    
+    put:
+      tags:
+        - Section
+      summary: Updates an existing section
+      description: |-
+        NOTE:- Here provide the '_id' tag in request.
+        
+        Updates the section name, of existing '_id'.
+      
+      requestBody:
+        content:
+          application/body:
+            schema:
+              $ref: '#/components/schemas/Section'
+      
+      responses:
+        200:
+          description: Successfully updated the section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  section:
+                    $ref: '#/components/schemas/Section'
+                    
+  /section/{id}:
+    delete:
+      tags:
+        - Section
+      summary: Delete an existing section by Id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the Section want to delete
+      
+      responses:
+        200:
+          description: Successfully deleted the Section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  section:
+                    $ref: '#/components/schemas/Section'
+
+  /section/list:
+    get:
+      tags:
+        - Section
+      summary: Get the list of all sections
+      responses:
+        200:
+          description: Successfully retrieved all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  categories: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Section'
+  
+  /subSection:
+    post:
+      tags:
+        - SubSection
+      summary: Add a new sub-section
+      description: |-
+        Checks if the sub-section with same name and same section_id exists and if not adds the new sub-section.
+        
+        
+        NOTE:- Here save all categories in lowercase
+      
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubSection'
+      
+      responses:
+        200:
+          description: Successfully created a new sub-section.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: boolean
+                    example: true
+                  sub-section:
+                    $ref: '#/components/schemas/SubSection'
+    
+    put:
+      tags:
+        - SubSection
+      summary: Updates an existing sub-section
+      description: |-
+        NOTE:- Here provide the '_id' tag in request.
+        
+        Updates the sub-section name, of existing '_id'.
+      
+      requestBody:
+        content:
+          application/body:
+            schema:
+              $ref: '#/components/schemas/SubSection'
+      
+      responses:
+        200:
+          description: Successfully updated the sub-section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  sub-section:
+                    $ref: '#/components/schemas/SubSection'
+                    
+  /subSection/{id}:
+    delete:
+      tags:
+        - SubSection
+      summary: Delete an existing sub-section by Id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the SubSection want to delete
+      
+      responses:
+        200:
+          description: Successfully deleted the SubSection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sub-section:
+                    $ref: '#/components/schemas/SubSection'
+
+  /subSection/list:
+    get:
+      tags:
+        - SubSection
+      summary: Get the list of all sub-sections
+      responses:
+        200:
+          description: Successfully retrieved all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  categories: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubSection'
+                      
+  /unit:
+    post:
+      tags:
+        - Unit
+      summary: Add a new unit
+      description: |-
+        Checks if the unit with same name exists and if not adds the new unit.
+        
+        
+        NOTE:- Here save all categories in lowercase
+      
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+      
+      responses:
+        200:
+          description: Successfully created a new unit.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: boolean
+                    example: true
+                  unit:
+                    $ref: '#/components/schemas/Unit'
+    
+    put:
+      tags:
+        - Unit
+      summary: Updates an existing unit
+      description: |-
+        NOTE:- Here provide the '_id' tag in request.
+        
+        Updates the unit name, of existing '_id'.
+      
+      requestBody:
+        content:
+          application/body:
+            schema:
+              $ref: '#/components/schemas/Unit'
+      
+      responses:
+        200:
+          description: Successfully updated the unit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  unit:
+                    $ref: '#/components/schemas/Unit'
+                    
+  /unit/{id}:
+    delete:
+      tags:
+        - Unit
+      summary: Delete an existing unit by Id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the Unit want to delete
+      
+      responses:
+        200:
+          description: Successfully deleted the Unit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  unit:
+                    $ref: '#/components/schemas/Unit'
+
+  /unit/list:
+    get:
+      tags:
+        - Unit
+      summary: Get the list of all units
+      responses:
+        200:
+          description: Successfully retrieved all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  categories: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Unit'
+  
+  
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: James
+        password:
+          type: string
+          description: 'This will not be saved in database'
+        email:
+          type: string
+          example: john@email.com
+        image:
+          type: string
+          description: Image link
+          
+    Product:
+      type: object
+      properties:
+        _id: 
+          type: string
+        product_name: 
+          type: string
+        category_id:
+          type: string
+          description: One of available categories only.
+        section_id:
+          type: string
+          description: One of available sections of the category, only.
+        sub_section_id:
+          type: string
+          description: One of available sub-sections of the section, only.
+        image:
+          type: string
+          description: Image link
+        price:
+          type: number
+          format: float32
+          description: This price is the price per Unit.
+        unit_id:
+          type: string
+          description: One of available units only.
+        description:
+          type: string
+          description: Product description
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
+        
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
+          
+    Section:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        category_id:
+          type: string
+          description: One of available categories only
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
+    
+    SubSection:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        section_id:
+          type: string
+          description: One of available sections only
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
+    
+    Unit:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
+    
+    MetaData:
+      type: object
+      properties:
+        _id:
+          type: string
+        _created_at:
+          type: string
+          description: Date ISO Format
+        _updated_at:
+          type: string
+          description: Date ISO Format
+        __v:
+          type: integer
+          description: Version Number
