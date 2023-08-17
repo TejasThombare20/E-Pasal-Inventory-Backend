@@ -257,6 +257,33 @@ paths:
                     type: boolean
                   category:
                     $ref: '#/components/schemas/Category'
+                    
+                    
+    get:
+      tags:
+        - Category
+      summary: Get an existing category by id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the Category we want to get
+      
+      responses:
+        200:
+          description: Successfully got the category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
+                    $ref: '#/components/schemas/Category'
+          
 
   /category/list:
     get:
@@ -363,6 +390,31 @@ paths:
                     type: boolean
                   section:
                     $ref: '#/components/schemas/Section'
+                    
+    get:
+      tags:
+        - Section
+      summary: Get an existing section by id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the section we want to get
+      
+      responses:
+        200:
+          description: Successfully got the section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
+                    $ref: '#/components/schemas/Section'
 
   /section/list:
     get:
@@ -455,7 +507,7 @@ paths:
           schema:
             type: string
           required: true
-          description: Id of the SubSection want to delete
+          description: Id of the sub-section want to delete
       
       responses:
         200:
@@ -468,6 +520,31 @@ paths:
                   success:
                     type: boolean
                   sub-section:
+                    $ref: '#/components/schemas/SubSection'
+                    
+    get:
+      tags:
+        - SubSection
+      summary: Get an existing sub-section by id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the sub-section we want to get
+      
+      responses:
+        200:
+          description: Successfully got the sub-section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
                     $ref: '#/components/schemas/SubSection'
 
   /subSection/list:
@@ -574,6 +651,31 @@ paths:
                   success:
                     type: boolean
                   unit:
+                    $ref: '#/components/schemas/Unit'
+                    
+    get:
+      tags:
+        - Unit
+      summary: Get an existing unit by id
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Id of the unit we want to get
+      
+      responses:
+        200:
+          description: Successfully got the unit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
                     $ref: '#/components/schemas/Unit'
 
   /unit/list:
