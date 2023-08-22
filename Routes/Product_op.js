@@ -6,13 +6,12 @@ const Product = require("../Module/Product");
 const { body, validationResult } = require("express-validator");
 
 // Get all product of login user using : GET /api/product/fetchAllProduct
-router.get("/fetchAllProduct", async (req, res) => {
+router.get('/fetchAllProduct', async (req, res) => {
   try {
-    const product = await Product.find({});
-    res.json(product);
+    const products = await Product.find().sort({ createdAt: -1 }); // Fetch all products and sort by createdAt in descending order
+    res.json(products);
   } catch (error) {
-    // console.log(error.massage);
-    res.status(500).send("internal server error");
+    res.status(500).json({ error: 'Internal server error' , message : error.message });
   }
 });
 
