@@ -28,6 +28,9 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  barcode : {
+    type: String,
+  },
   quantity: {
     type: String,
     required: true,

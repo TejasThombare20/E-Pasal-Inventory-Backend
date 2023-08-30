@@ -20,7 +20,7 @@ router.post("/categories", async (req, res) => {
   }
 });
 
-// Later, when you want to add sections and subsections to a category
+// add new sections and subsections to a category
 
 
 router.post('/addSection/:categoryId', async (req, res) => {
@@ -47,6 +47,7 @@ router.post('/addSection/:categoryId', async (req, res) => {
     await existingCategory.save();
 
     res.status(200).json(existingCategory);
+      //  res.status(200).json(newSection)
   } catch (error) {
     console.error('Error adding section:', error);
     res.status(400).json({ error: error.message });
@@ -80,7 +81,7 @@ router.post(
 
       res
         .status(200)
-        .json({ message: "Subsection added successfully", category });
+        .json({ message: "Subsection added successfully", subsection });
     } catch (error) {
       res.status(400).json({ error: "Failed to add subsection" });
     }

@@ -3,7 +3,6 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Product = require("../Module/Product");
 
-const { body, validationResult } = require("express-validator");
 
 // Get all product of login user using : GET /api/product/fetchAllProduct
 router.get('/fetchAllProduct', async (req, res) => {
@@ -22,7 +21,7 @@ router.post(
   async (req, res) => {
     try {
       let success = false;
-      const { product_name, category,sub_category,sub_sub_category, image, price, quantity, description } =
+      const { product_name, category,sub_category,sub_sub_category, image, price, quantity,barcode, description } =
         req.body;
 
       // console.log((req.body));
@@ -35,6 +34,7 @@ router.post(
         image,
         quantity,
         price,
+        barcode,
         description,
       });
       const savedProduct = await product.save();
@@ -65,6 +65,7 @@ router.put('/updateProduct/:id', async (req, res) => {
           u_sub_sub_category,
           u_image,
           u_price,
+          u_barcode,
           u_quantity,
           u_description
       } = req.body;
@@ -79,6 +80,7 @@ router.put('/updateProduct/:id', async (req, res) => {
       if (u_price) newProduct.price = u_price;
       if (u_quantity) newProduct.quantity = u_quantity;
       if (u_description) newProduct.description = u_description;
+      if (u_barcode) newProduct.barcode = u_barcode;
 
       // Find the product to be updated and update it
       let product = await Product.findById(req.params.id);
@@ -96,6 +98,7 @@ router.put('/updateProduct/:id', async (req, res) => {
       if (u_price) updateObject.price = u_price;
       if (u_quantity) updateObject.quantity = u_quantity;
       if (u_description) updateObject.description = u_description;
+      if (u_barcode) updateObject.barcode = u_barcode;
 
       product = await Product.findByIdAndUpdate(req.params.id, updateObject, { new: true });
 
