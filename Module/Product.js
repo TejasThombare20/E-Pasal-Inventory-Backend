@@ -45,10 +45,7 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
+  
 });
 const Product = mongoose.model("Product", UserSchema);
 //   User.createIndexes();

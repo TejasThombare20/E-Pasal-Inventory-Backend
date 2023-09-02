@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   name: {
     type: String,
     required: true
