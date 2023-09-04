@@ -22,8 +22,7 @@ router.post("/categories", async (req, res) => {
 
 // add new sections and subsections to a category
 
-
-router.post('/addSection/:categoryId', async (req, res) => {
+router.post("/addSection/:categoryId", async (req, res) => {
   try {
     const { sectionName } = req.body;
     const categoryId = req.params.categoryId;
@@ -31,13 +30,13 @@ router.post('/addSection/:categoryId', async (req, res) => {
     // Find the category by ID
     const existingCategory = await Category.findById(categoryId);
     if (!existingCategory) {
-      return res.status(404).json({ error: 'Category not found' });
+      return res.status(404).json({ error: "Category not found" });
     }
 
     // Create a new section object
     const newSection = {
       name: sectionName,
-      subsections: []
+      subsections: [],
     };
 
     // Push the new section object to the sections array
@@ -47,14 +46,12 @@ router.post('/addSection/:categoryId', async (req, res) => {
     await existingCategory.save();
 
     res.status(200).json(existingCategory);
-      //  res.status(200).json(newSection)
+    //  res.status(200).json(newSection)
   } catch (error) {
-    console.error('Error adding section:', error);
+    console.error("Error adding section:", error);
     res.status(400).json({ error: error.message });
   }
 });
-
-
 
 // POST request to add new subsections to an existing section within a category
 router.post(
@@ -226,23 +223,23 @@ router.put(
 );
 
 // delete a category
-router.delete('/categories/:categoryId', async (req, res) => {
+router.delete("/categories/:categoryId", async (req, res) => {
   try {
     const categoryId = req.params.categoryId;
 
     // Check if the category exists
     const category = await Category.findById(categoryId);
     if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+      return res.status(404).json({ message: "Category not found" });
     }
 
     // Delete the category
     await Category.findByIdAndRemove(categoryId);
 
-    res.status(200).json({ message: 'Category deleted successfully' });
+    res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
-    console.error('Error deleting category:', error.message);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error deleting category:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

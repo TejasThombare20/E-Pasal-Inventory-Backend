@@ -4,17 +4,18 @@ const { Storage } = require("@google-cloud/storage");
 const mongoose = require("mongoose");
 const { format } = require("util");
 const Multer = require("multer");
+const path = require("path");
 const cors = require("cors");
 const passport = require("passport");
 const dotenv = require("dotenv");
-const secretKeys = require("./config/gcs.json");
+
 dotenv.config();
 getconnection();
 const app = express();
 const port = process.env.PORT;
 const corsOptions = {
-  // origin: 'https://e-pasal-inventory-frontend.vercel.app',
-  origin: "http://localhost:3000",
+  origin: 'https://e-pasal-inventory-frontend.vercel.app',
+  // origin: "http://localhost:3000",
   credentials: true,
   // Add these headers to allow specific HTTP methods and headers
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -34,23 +35,26 @@ app.use(express.json());
 // const keyfilename = path.join(__dirname, 'config', 'gcs.json');
 
 const cloudStorage = new Storage({
-  keyFilename: secretKeys,
+  keyFilename: path.join(__dirname, 'config', 'e-pasal_gcs.json'),
   projectId: "epasal-product-library",
 });
 
-const bucketName = "epasal";
+const bucketName = "e-pasal_product";
 
 const bucket = cloudStorage.bucket(bucketName);
 
-app.post("/api/uploadimage", multer.single("File"), async (req, res, next) => {
+app.post("/api/uploadimage", multer.single("file"), async (req, res, next) => {
   try {
     if (!req.file) {
       res.status(404).send("No file uploaded");
       return;
     }
+   
   
     const blob = bucket.file(req.file.originalname);
+    
     const blobStream = blob.createWriteStream();
+
     blobStream.on("error", (err) => {
       next(err);
     });
