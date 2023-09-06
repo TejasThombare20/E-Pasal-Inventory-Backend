@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const UserSchema = new Schema({
+const Category =  require('./Category/Category')
+
+const productSchemma = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
@@ -11,17 +13,19 @@ const UserSchema = new Schema({
   },
 
   category: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
     required: true,
   },
-
-  sub_category: {
-    type: String,
-    required : true,
+  sections: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category.sections',
+    required: false,
   },
+  subsections: {
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Subsection model
+    ref: 'Category.sections.subsections',
 
-  sub_sub_category :{
-      type : String
   },
 
   image: {
@@ -47,6 +51,6 @@ const UserSchema = new Schema({
   },
   
 });
-const Product = mongoose.model("Product", UserSchema);
-//   User.createIndexes();
+const Product = mongoose.model("Product", productSchemma);
+
 module.exports = Product;

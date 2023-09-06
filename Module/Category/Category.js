@@ -15,7 +15,11 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: false
       },
-      subsections: [String]
+      subsections: [
+        {
+          name : String,
+        }
+      ]
     }
   ]
 });

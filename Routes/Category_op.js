@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Category = require("../Module/Category/Category");
+const Product = require("../Module/Product");
 
 // POST request to add a new category with sections and subsections
 router.post("/categories", async (req, res) => {
@@ -73,7 +74,11 @@ router.post(
         return res.status(400).json({ error: "Section not found" });
       }
 
-      section.subsections.push(subsection);
+      const newsubSection = {
+        name: subsection,
+      };
+
+      section.subsections.push(newsubSection);
       await category.save();
 
       res
@@ -139,7 +144,19 @@ router.get("/:categoryId/sections/:sectionId/subsections", async (req, res) => {
 router.put("/updateCategory/:categoryId", async (req, res) => {
   try {
     const { categoryId } = req.params;
-    const { name } = req.body;
+    const { name, previousName } = req.body;
+
+    console.log("previousName: " + previousName);
+
+    // const productsToUpdate = await Product.find({ category: previousName });
+
+    // console.log("productsToUpdate", productsToUpdate);
+
+    // // Update the category reference in each product
+    // for (const product of productsToUpdate) {
+    //   product.category = name;
+    //   await product.save();
+    // }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       categoryId,
@@ -153,8 +170,10 @@ router.put("/updateCategory/:categoryId", async (req, res) => {
 
     res.status(200).json(updatedCategory);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update category" });
+    // console.error(error);
+    res
+      .status(500)
+      .json({ message: "Failed to update category", error: error.message });
   }
 });
 //  update the section
@@ -189,38 +208,82 @@ router.put("/:categoryId/updateSection/:sectionId", async (req, res) => {
 // Update a subsection's name
 
 router.put(
-  "/:categoryId/updateSubsection/:sectionId/:subsectionIndex",
+  "/:categoryId/updateSubsection/:sectionId/:subsectionId",
   async (req, res) => {
-    const { categoryId, sectionId, subsectionIndex } = req.params;
-    const { newSubsectionName } = req.body;
-
     try {
-      const updatedCategory = await Category.findOneAndUpdate(
-        {
-          _id: categoryId,
-          "sections._id": sectionId,
-        },
-        {
-          $set: {
-            [`sections.$.subsections.${subsectionIndex}`]: newSubsectionName,
-          },
-        },
-        { new: true }
-      );
+      const { categoryId, sectionId, subsectionId } = req.params;
+      const { newName } = req.body; // Assuming you send the new name in the request body
 
-      if (!updatedCategory) {
-        return res.status(404).json({ error: "Category or Section not found" });
+      // Find the category by its ID
+      const category = await Category.findById(categoryId);
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
       }
+
+      // Find the section by its ID
+      const section = category.sections.id(sectionId);
+
+      if (!section) {
+        return res.status(404).json({ message: "Section not found" });
+      }
+
+      // Find the subsection by its ID
+      const subsection = section.subsections.id(subsectionId);
+
+      if (!subsection) {
+        return res.status(404).json({ message: "Subsection not found" });
+      }
+
+      // Update the subsection name
+      subsection.name = newName;
+
+      // Save the updated category
+      const updatedCategory = await category.save();
 
       res.status(200).json(updatedCategory);
     } catch (error) {
-      console.error(error);
+      console.error("Error updating subsection:", error);
       res
         .status(500)
-        .json({ error: "Failed to update subsection", message: error.message });
+        .json({ message: "Internal server error", error: error.message });
     }
   }
 );
+
+// router.put(
+//   "/:categoryId/updateSubsection/:sectionId/:subsectionId",
+//   async (req, res) => {
+//     const { categoryId, sectionId, subsectionId } = req.params;
+//     const { newSubsectionName } = req.body;
+
+//     try {
+//       const updatedCategory = await Category.findOneAndUpdate(
+//         {
+//           _id: categoryId,
+//           "sections._id": sectionId,
+//         },
+//         {
+//           $set: {
+//             [`sections.$.subsections.${subsectionIndex}`]: newSubsectionName,
+//           },
+//         },
+//         { new: true }
+//       );
+
+//       if (!updatedCategory) {
+//         return res.status(404).json({ error: "Category or Section not found" });
+//       }
+
+//       res.status(200).json(updatedCategory);
+//     } catch (error) {
+//       console.error(error);
+//       res
+//         .status(500)
+//         .json({ error: "Failed to update subsection", message: error.message });
+//     }
+//   }
+// );
 
 // delete a category
 router.delete("/categories/:categoryId", async (req, res) => {

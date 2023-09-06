@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const Product = require("../Module/Product");
+const Category = require("../Module/Category/Category");
 
 // Get all product of login user using : GET /api/product/fetchAllProduct
 // router.get('/fetchAllProduct', async (req, res) => {
@@ -24,13 +25,99 @@ router.get("/fetchAllProduct", async (req, res) => {
       .sort({ createdAt: -1 }) // Sort by createdAt in descending order
       .skip(skip)
       .limit(itemsPerPage);
+    // .populate("category", "name")
+    // .populate("category.sections", "name")
+    // .populate("category.sections.subsections", "name")
+    // .exec();
+    const populatedProducts = await Promise.all(
+      products.map(async (product) => {
+        const category = await Category.findById(product.category);
+        const sections = category
+          ? category.sections.id(product.sections)
+          : null;
+        const subsections = sections
+          ? sections.subsections.id(product.subsections)
+          : null;
 
-    res.status(200).json({ products });
+        return {
+          ...product.toObject(),
+          category: category ? category.name : null,
+          sections: sections ? sections.name : null,
+          subsections: subsections ? subsections.name : null,
+        };
+      })
+    );
+
+    console.log("populatedProducts", populatedProducts);
+
+    res.status(200).json( populatedProducts );
   } catch (error) {
     console.error("Error fetching products:", error);
-    res.status(500).json({ message: "Internal server error", error });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
+
+// router.get("/fetchAllProduct", async (req, res) => {
+//   const { page } = req.query;
+//   const itemsPerPage = 10;
+//   const skip = (page - 1) * itemsPerPage;
+
+//   try {
+//     const products = await Product.aggregate([
+//       {
+//         $sort: { createdAt: -1 },
+//       },
+//       {
+//         $skip: skip,
+//       },
+//       {
+//         $limit: itemsPerPage,
+//       },
+//       {
+//         $lookup: {
+//           from: "Category", // Name of the Category collection
+//           localField: "category",
+//           foreignField: "_id",
+//           as: "category",
+//         },
+//       },
+//       {
+//         $unwind: "$category",
+//       },
+//       {
+//         $lookup: {
+//           from: "Category.sections", // Name of the Section collection
+//           localField: "sections",
+//           foreignField: "_id",
+//           as: "sections",
+//         },
+//       },
+//       {
+//         $unwind: "$sections",
+//       },
+//       {
+//         $lookup: {
+//           from: "Category.sections.subsections", // Name of the Subsection collection
+//           localField: "subsections",
+//           foreignField: "_id",
+//           as: "subsections",
+//         },
+//       },
+//       {
+//         $unwind: "$subsections",
+//       },
+//     ]);
+
+//     console.log('products:', products);
+
+//     res.status(200).json({ products });
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//     res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
 // add a new product using : POST /api/product/addProduct - login required
 router.post(
@@ -42,8 +129,8 @@ router.post(
       const {
         product_name,
         category,
-        sub_category,
-        sub_sub_category,
+        sections,
+        subsections,
         image,
         price,
         quantity,
@@ -56,8 +143,8 @@ router.post(
       const product = new Product({
         product_name,
         category,
-        sub_category,
-        sub_sub_category,
+        sections,
+        subsections,
         image,
         quantity,
         price,
