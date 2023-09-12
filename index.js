@@ -17,6 +17,7 @@ const port = process.env.PORT;
 const corsOptions = {
   origin: 'https://e-pasal-inventory-frontend.vercel.app',
   // origin: "http://localhost:3000",
+
   credentials: true,
   // Add these headers to allow specific HTTP methods and headers
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
