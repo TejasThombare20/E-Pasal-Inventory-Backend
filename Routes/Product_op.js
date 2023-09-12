@@ -3,6 +3,14 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Product = require("../Module/Product");
 const Category = require("../Module/Category/Category");
+const Unit = require("../Module/Unit");
+const { Storage } = require("@google-cloud/storage");
+const path = require("path");
+
+const storage = new Storage({
+  keyFilename: path.join(__dirname, "..", "config", "e-pasal_gcs.json"),
+  projectId: "epasal-product-library",
+});
 
 // Get all product of login user using : GET /api/product/fetchAllProduct
 // router.get('/fetchAllProduct', async (req, res) => {
@@ -38,19 +46,21 @@ router.get("/fetchAllProduct", async (req, res) => {
         const subsections = sections
           ? sections.subsections.id(product.subsections)
           : null;
+        const unit = await Unit.findById(product.unit);
 
         return {
           ...product.toObject(),
           category: category ? category.name : null,
           sections: sections ? sections.name : null,
           subsections: subsections ? subsections.name : null,
+          unit: unit ? unit.name : null,
         };
       })
     );
 
     console.log("populatedProducts", populatedProducts);
 
-    res.status(200).json( populatedProducts );
+    res.status(200).json(populatedProducts);
   } catch (error) {
     console.error("Error fetching products:", error);
     res
@@ -58,66 +68,6 @@ router.get("/fetchAllProduct", async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 });
-
-// router.get("/fetchAllProduct", async (req, res) => {
-//   const { page } = req.query;
-//   const itemsPerPage = 10;
-//   const skip = (page - 1) * itemsPerPage;
-
-//   try {
-//     const products = await Product.aggregate([
-//       {
-//         $sort: { createdAt: -1 },
-//       },
-//       {
-//         $skip: skip,
-//       },
-//       {
-//         $limit: itemsPerPage,
-//       },
-//       {
-//         $lookup: {
-//           from: "Category", // Name of the Category collection
-//           localField: "category",
-//           foreignField: "_id",
-//           as: "category",
-//         },
-//       },
-//       {
-//         $unwind: "$category",
-//       },
-//       {
-//         $lookup: {
-//           from: "Category.sections", // Name of the Section collection
-//           localField: "sections",
-//           foreignField: "_id",
-//           as: "sections",
-//         },
-//       },
-//       {
-//         $unwind: "$sections",
-//       },
-//       {
-//         $lookup: {
-//           from: "Category.sections.subsections", // Name of the Subsection collection
-//           localField: "subsections",
-//           foreignField: "_id",
-//           as: "subsections",
-//         },
-//       },
-//       {
-//         $unwind: "$subsections",
-//       },
-//     ]);
-
-//     console.log('products:', products);
-
-//     res.status(200).json({ products });
-//   } catch (error) {
-//     console.error("Error fetching products:", error);
-//     res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
 
 // add a new product using : POST /api/product/addProduct - login required
 router.post(
@@ -133,7 +83,7 @@ router.post(
         subsections,
         image,
         price,
-        quantity,
+        unit,
         barcode,
         description,
       } = req.body;
@@ -146,7 +96,7 @@ router.post(
         sections,
         subsections,
         image,
-        quantity,
+        unit,
         price,
         barcode,
         description,
@@ -224,10 +174,33 @@ router.put("/updateProduct/:id", async (req, res) => {
   }
 });
 
+// router.delete("/deleteProduct/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     console.log("id: ", id);
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).send("Invalid product ID");
+//     }
+
+//     const deletedProduct = await Product.findOneAndDelete({
+//       _id: id,
+//     });
+
+//     if (!deletedProduct) {
+//       return res.status(404).send("Product not found or not allowed");
+//     }
+
+//     res.json({ Success: "product has been deleted", product: deletedProduct });
+//   } catch (err) {
+//     // console.log(error.message);
+//     res.status(500).send({ msg: "Internal server error", error: err.message });
+//   }
+// });
+
 router.delete("/deleteProduct/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("id: ", id);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).send("Invalid product ID");
@@ -237,40 +210,334 @@ router.delete("/deleteProduct/:id", async (req, res) => {
       _id: id,
     });
 
+    console.log("deletedProduct", deletedProduct);
+
     if (!deletedProduct) {
       return res.status(404).send("Product not found or not allowed");
     }
 
-    res.json({ Success: "product has been deleted", product: deletedProduct });
+    const imageUrl = deletedProduct.image;
+
+    const filename = imageUrl.replace(
+      "https://storage.googleapis.com/e-pasal_product/",
+      ""
+    );
+
+    // Delete the image from Google Cloud Storage
+    await storage.bucket("e-pasal_product").file(filename).delete();
+
+    res.json({ Success: "Product has been deleted", product: deletedProduct });
   } catch (err) {
-    // console.log(error.message);
+    console.error(err);
     res.status(500).send({ msg: "Internal server error", error: err.message });
   }
 });
 
+// router.get("/search", async (req, res) => {
+//   const { query } = req.query;
+
+//   try {
+//     // Use Mongoose to query the database for matching products
+//     const searchResults = await Product.find({
+//       $or: [
+//         { product_name: { $regex: query, $options: "i" } }, // Case-insensitive search in name
+//         { description: { $regex: query, $options: "i" } },
+//         { price: { $regex: query, $options: "i" } },
+//         { category: { $regex: query, $options: "i" } },
+//         { sub_category: { $regex: query, $options: "i" } },
+//         { sub_sub_category: { $regex: query, $options: "i" } },
+//         { unit: { $regex: query, $options: "i" } },
+//         { barcode: { $regex: query, $options: "i" } },
+//       ],
+//     });
+
+//     res.json(searchResults);
+//   } catch (error) {
+//     console.error("Error fetching search results:", error);
+//     res.status(500).json({ message: "Internal server error", error: error.message });
+//   }
+// });
+
 router.get("/search", async (req, res) => {
   const { query } = req.query;
 
+  console.log("query", query);
+
   try {
-    // Use Mongoose to query the database for matching products
-    const searchResults = await Product.find({
+    const searchProduct = [];
+
+    // Search for products matching the query word
+    const productResults = await Product.find({
       $or: [
-        { product_name: { $regex: query, $options: "i" } }, // Case-insensitive search in name
+        { product_name: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
         { price: { $regex: query, $options: "i" } },
-        { category: { $regex: query, $options: "i" } },
-        { sub_category: { $regex: query, $options: "i" } },
-        { sub_sub_category: { $regex: query, $options: "i" } },
-        { quantity: { $regex: query, $options: "i" } },
         { barcode: { $regex: query, $options: "i" } },
       ],
     });
 
-    res.json(searchResults);
+    // Add products to the searchProduct array
+    searchProduct.push(...productResults);
+
+    // Search for categories matching the query word
+    const categoryResults = await Category.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { "sections.name": { $regex: query, $options: "i" } }, // Search in section names
+        { "sections.subsections.name": { $regex: query, $options: "i" } }, // Search in subsection names
+      ],
+    });
+    for (const category of categoryResults) {
+      const categoryProducts = await Product.find({ category: category._id });
+      console.log("categoryProducts", categoryProducts);
+      searchProduct.push(...categoryProducts);
+    }
+
+    console.log("searchProduct after Category : ", searchProduct);
+
+    // Search for units matching the query word
+    const unitResults = await Unit.find({
+      name: { $regex: query, $options: "i" },
+    });
+
+    //  For each matching unit, find associated products and add them to the searchProduct array
+    for (const unit of unitResults) {
+      const unitProducts = await Product.find({ unit: unit._id });
+      console.log("unitProducts", unitProducts);
+      searchProduct.push(...unitProducts);
+    }
+
+    console.log("searchProduct after Unit", searchProduct);
+
+    // Remove duplicates from the searchProduct array
+    const uniqueSearchProduct = Array.from(
+      new Set(searchProduct.map((product) => product._id))
+    ).map((productId) =>
+      searchProduct.find((product) => product._id === productId)
+    );
+
+    // Fetch category, section, and subsection information for each product
+    // for (const product of uniqueSearchProduct) {
+    //   const category = await Category.findById(product.category);
+    //   const sections = category ? category.sections.id(product.sections) : null;
+    //   const subsections = sections
+    //     ? sections.subsections.id(product.subsections)
+    //     : null;
+    //   const unit = await Unit.findById(product.unit);
+
+    //   product.category = category ? category.name : null;
+    //   product.sections = sections ? sections.name : null;
+    //   product.subsections = subsections ? subsections.name : null;
+    //   product.unit = unit ? unit.name : null;
+    // }
+
+    const populatedProducts = await Promise.all(
+      uniqueSearchProduct.map(async (product) => {
+        const category = await Category.findById(product.category);
+        const sections = category
+          ? category.sections.id(product.sections)
+          : null;
+        const subsections = sections
+          ? sections.subsections.id(product.subsections)
+          : null;
+        const unit = await Unit.findById(product.unit);
+
+        return {
+          ...product.toObject(),
+          category: category ? category.name : null,
+          sections: sections ? sections.name : null,
+          subsections: subsections ? subsections.name : null,
+          unit: unit ? unit.name : null,
+        };
+      })
+    );
+
+    console.log("populatedProducts", populatedProducts);
+
+    res.json(populatedProducts);
   } catch (error) {
     console.error("Error fetching search results:", error);
-    res.status(500).json({ message: "Internal server error", error: error });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
+
+// router.get("/search", async (req, res) => {
+//   const { query } = req.query;
+
+//   console.log("query", query);
+
+//   try {
+//     const searchProduct = [];
+
+//     // Search for products matching the query word
+//     const productResults = await Product.find({
+//       $or: [
+//         { product_name: { $regex: query, $options: "i" } },
+//         { description: { $regex: query, $options: "i" } },
+//         { price: { $regex: query, $options: "i" } },
+//         { barcode: { $regex: query, $options: "i" } },
+//       ],
+//     });
+
+//     // Add products to the searchProduct array
+//     searchProduct.push(...productResults);
+
+//     // Search for categories matching the query word
+//     const categoryResults = await Category.find({
+//       $or: [
+//         { name: { $regex: query, $options: "i" } },
+//         { "sections.name": { $regex: query, $options: "i" } }, // Search in section names
+//         { "sections.subsections.name": { $regex: query, $options: "i" } }, // Search in subsection names
+//       ],
+//     });
+
+//     console.log("categoryResults", categoryResults);
+
+//     // For each matching category, find associated products and add them to the searchProduct array
+//     for (const category of categoryResults) {
+//       const categoryProducts = await Product.find({ category: category._id });
+//       console.log("categoryProducts", categoryProducts);
+
+//       for (const product of categoryProducts) {
+//         const section = category.sections.find((s) =>
+//           s._id.equals(product.sections)
+//         );
+
+//         const subsection = section
+//           ? section.subsections.find((ss) => ss._id.equals(product.subsections))
+//           : null;
+//         const unit = await Unit.findById(product.unit);
+
+//         searchProduct.push({
+//           ...product.toObject(),
+//           category: category.name,
+//           sections: section ? section.name : null,
+//           subsections: subsection ? subsection.name : null,
+//           unit: unit ? unit.name : null,
+//         });
+//       }
+
+//     }
+
+//     // Search for units matching the query word
+//     const unitResults = await Unit.find({
+//       name: { $regex: query, $options: "i" },
+//     });
+
+//     // For each matching unit, find associated products and add them to the searchProduct array
+//     for (const unit of unitResults) {
+//       const unitProducts = await Product.find({ unit: unit._id });
+//       console.log("unitProducts", unitProducts);
+
+//       // Fetch category, section, and subsection information for each unit product
+//       for (const product of unitProducts) {
+//         const category = await Category.findById(product.category);
+//         const sections = category
+//           ? category.sections.id(product.sections)
+//           : null;
+//         const subsections = sections
+//           ? sections.subsections.id(product.subsections)
+//           : null;
+
+//         searchProduct.push({
+//           ...product.toObject(),
+//           category: category ? category.name : null,
+//           sections: sections ? sections.name : null,
+//           subsections: subsections ? subsections.name : null,
+//           unit: unit.name,
+//         });
+//       }
+//     }
+
+//     console.log("searchProduct", searchProduct);
+//     // Remove duplicates from the searchProduct array
+//     const uniqueSearchProduct = Array.from(
+//       new Set(searchProduct.map((product) => product._id))
+//     ).map((productId) =>
+//       searchProduct.find((product) => product._id === productId)
+//     );
+
+//     res.json(uniqueSearchProduct);
+//   } catch (error) {
+//     console.error("Error fetching search results:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Internal server error", error: error.message });
+//   }
+// });
+
+// router.get("/search", async (req, res) => {
+//   const { query } = req.query;
+
+//   console.log("query", query);
+
+//   try {
+//     const searchProduct = [];
+
+//     // Search for products matching the query word, and populate the related fields with names
+//     const productResults = await Product.find({
+//       $or: [
+//         { product_name: { $regex: query, $options: "i" } },
+//         { description: { $regex: query, $options: "i" } },
+//         { price: { $regex: query, $options: "i" } },
+//         { barcode: { $regex: query, $options: "i" } },
+//       ],
+//     })
+//       .populate("category", "name")
+//       .populate("sections", "name")
+//       .populate("subsections", "name")
+//       .populate("unit", "name");
+
+//     // Add products to the searchProduct array
+//     searchProduct.push(...productResults);
+
+//     // Search for categories matching the query word
+//     const categoryResults = await Category.find({
+//       $or: [
+//         { name: { $regex: query, $options: "i" } },
+//         { "sections.name": { $regex: query, $options: "i" } }, // Search in section names
+//         { "sections.subsections.name": { $regex: query, $options: "i" } }, // Search in subsection names
+//       ],
+//     });
+
+//     console.log("categoryResults", categoryResults);
+
+//     // For each matching category, find associated products and add them to the searchProduct array
+//     for (const category of categoryResults) {
+//       const categoryProducts = await Product.find({ category: category._id });
+//       console.log("categoryProducts", categoryProducts);
+//       searchProduct.push(...categoryProducts);
+//     }
+
+//     // Search for units matching the query word
+//     const unitResults = await Unit.find({
+//       name: { $regex: query, $options: "i" },
+//     });
+
+//     // For each matching unit, find associated products and add them to the searchProduct array
+//     for (const unit of unitResults) {
+//       const unitProducts = await Product.find({ unit: unit._id });
+//       console.log("unitProducts", unitProducts);
+//       searchProduct.push(...unitProducts);
+//     }
+
+//     console.log("searchProduct", searchProduct);
+//     // Remove duplicates from the searchProduct array
+//     const uniqueSearchProduct = Array.from(
+//       new Set(searchProduct.map((product) => product._id))
+//     ).map((productId) =>
+//       searchProduct.find((product) => product._id === productId)
+//     );
+
+//     res.json(uniqueSearchProduct);
+//   } catch (error) {
+//     console.error("Error fetching search results:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Internal server error", error: error.message });
+//   }
+// });
 
 module.exports = router;

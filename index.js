@@ -8,14 +8,15 @@ const path = require("path");
 const cors = require("cors");
 const passport = require("passport");
 const dotenv = require("dotenv");
+const { v4: uuidv4 } = require("uuid"); 
 
 dotenv.config();
 getconnection();
 const app = express();
 const port = process.env.PORT;
 const corsOptions = {
-  // origin: 'https://e-pasal-inventory-frontend.vercel.app',
-  origin: "http://localhost:3000",
+  origin: 'https://e-pasal-inventory-frontend.vercel.app',
+  // origin: "http://localhost:3000",
   credentials: true,
   // Add these headers to allow specific HTTP methods and headers
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -49,11 +50,19 @@ app.post("/api/uploadimage", multer.single("file"), async (req, res, next) => {
       res.status(404).send("No file uploaded");
       return;
     }
-   
-  
-    const blob = bucket.file(req.file.originalname);
     
-    const blobStream = blob.createWriteStream();
+    const uniqueFilename = `${uuidv4()}`
+  
+    // const blob = bucket.file(req.file.originalname);
+    const blob = bucket.file(uniqueFilename);
+
+    
+    // const blobStream = blob.createWriteStream();
+    const blobStream = blob.createWriteStream({
+      metadata: {
+        contentType: "image", 
+      },
+    });
 
     blobStream.on("error", (err) => {
       next(err);
@@ -66,7 +75,7 @@ app.post("/api/uploadimage", multer.single("file"), async (req, res, next) => {
     });
   
     blobStream.end(req.file.buffer);
-    console.log(req.file);
+    // console.log(req.file);
     
   } catch (error) {
     console.log(error)

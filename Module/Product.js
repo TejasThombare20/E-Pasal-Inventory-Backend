@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const Category =  require('./Category/Category')
+const Unit = require('./Unit')
 
 const productSchemma = new Schema({
   createdAt: {
@@ -35,8 +36,9 @@ const productSchemma = new Schema({
   barcode : {
     type: String,
   },
-  quantity: {
-    type: String,
+  unit: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref :'Unit',
     required: true,
   },
 

@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Category = require("../Module/Category/Category");
 const Product = require("../Module/Product");
@@ -83,7 +84,7 @@ router.post(
 
       res
         .status(200)
-        .json({ message: "Subsection added successfully", subsection });
+        .json({ message: "Subsection added successfully", section });
     } catch (error) {
       res.status(400).json({ error: "Failed to add subsection" });
     }
@@ -148,15 +149,6 @@ router.put("/updateCategory/:categoryId", async (req, res) => {
 
     console.log("previousName: " + previousName);
 
-    // const productsToUpdate = await Product.find({ category: previousName });
-
-    // console.log("productsToUpdate", productsToUpdate);
-
-    // // Update the category reference in each product
-    // for (const product of productsToUpdate) {
-    //   product.category = name;
-    //   await product.save();
-    // }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       categoryId,
@@ -212,7 +204,7 @@ router.put(
   async (req, res) => {
     try {
       const { categoryId, sectionId, subsectionId } = req.params;
-      const { newName } = req.body; // Assuming you send the new name in the request body
+      const { newSubsectionName } = req.body; //  new name of the subsection  in the request body
 
       // Find the category by its ID
       const category = await Category.findById(categoryId);
@@ -227,16 +219,20 @@ router.put(
       if (!section) {
         return res.status(404).json({ message: "Section not found" });
       }
-
+      console.log("section: " + section);
       // Find the subsection by its ID
+      console.log("subsectionId", subsectionId);
       const subsection = section.subsections.id(subsectionId);
 
+      console.log("subsection : ", subsection);
       if (!subsection) {
         return res.status(404).json({ message: "Subsection not found" });
       }
 
       // Update the subsection name
-      subsection.name = newName;
+      subsection.name = newSubsectionName;
+
+      console.log("subsection updated", subsection);
 
       // Save the updated category
       const updatedCategory = await category.save();
@@ -286,31 +282,74 @@ router.put(
 // );
 
 // delete a category
-router.delete("/categories/:categoryId", async (req, res) => {
-  try {
-    const categoryId = req.params.categoryId;
+// router.delete("/categories/:categoryId", async (req, res) => {
+//   try {
+//     const categoryId = req.params.categoryId;
 
-    // Check if the category exists
-    const category = await Category.findById(categoryId);
-    if (!category) {
-      return res.status(404).json({ message: "Category not found" });
-    }
+//     // Check if the category exists
+//     const category = await Category.findById(categoryId);
+//     if (!category) {
+//       return res.status(404).json({ message: "Category not found" });
+//     }
+
+//     // Delete the category
+//     await Category.findByIdAndRemove(categoryId);
+
+//     res.status(200).json({ message: "Category deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting category:", error.message);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+router.delete("/categories/:categoryId", async (req, res) => {
+  const { categoryId } = req.params;
+
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    return res.status(404).json({ message: "Category not found" });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Delete products associated with the category
+
+    await Product.deleteMany({ category: categoryId }).session(session);
 
     // Delete the category
-    await Category.findByIdAndRemove(categoryId);
+    const DeletedCategory = await Category.findByIdAndDelete(
+      categoryId
+    ).session(session);
 
-    res.status(200).json({ message: "Category deleted successfully" });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Category and associated products deleted successfully",
+      DeletedCategory: DeletedCategory,
+    });
   } catch (error) {
-    console.error("Error deleting category:", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error deleting category and products:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 
 // DELETE request to delete a section of a category by ID and section ID
 router.delete("/:categoryId/sections/:sectionId", async (req, res) => {
-  try {
-    const { categoryId, sectionId } = req.params;
+  // try {
+  const { categoryId, sectionId } = req.params;
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
     // Find the category by ID
     const category = await Category.findById(categoryId);
     if (!category) {
@@ -322,46 +361,104 @@ router.delete("/:categoryId/sections/:sectionId", async (req, res) => {
       (section) => section._id.toString() === sectionId
     );
     if (sectionIndexToDelete === -1) {
-      return res.status(404).json({ error: "Section not found" });
+      return res.status(404).json({ error: "Section not found in category" });
     }
 
-    // Remove the section from the category's sections array using .pull()
-    category.sections.pull(category.sections[sectionIndexToDelete]._id);
+    // Delete products associated with the section
+
+    await Product.deleteMany({ sections: sectionId }).session(session);
+
+    // Delete the section
+    category.sections.splice(sectionIndexToDelete, 1);
+
+    // Save the updated category
     await category.save();
 
-    res.status(200).json({ message: "Section deleted successfully" });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "section and associated products deleted successfully",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to delete section" });
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error deleting section and products:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
+
+  //   // Remove the section from the category's sections array using .pull()
+  //   category.sections.pull(category.sections[sectionIndexToDelete]._id);
+  //   await category.save();
+
+  //   res.status(200).json({ message: "Section deleted successfully" });
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500).json({ error: "Failed to delete section" });
+  // }
 });
 
 router.delete(
-  "/:categoryId/sections/:sectionId/subsections/:subsectionIndex",
+  "/:categoryId/sections/:sectionId/subsections/:subsectionId",
   async (req, res) => {
+    const { categoryId, sectionId, subsectionId } = req.params;
+    
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    // Find the category by ID
     try {
-      const { categoryId, sectionId, subsectionIndex } = req.params;
-
-      // Find the category by ID
       const category = await Category.findById(categoryId);
       if (!category) {
         return res.status(404).json({ error: "Category not found" });
       }
 
       // Find the section within the category
-      const section = category.sections.id(sectionId);
+      const section = category.sections.find(
+        (section) => section._id.toString() === sectionId
+      );
       if (!section) {
-        return res.status(404).json({ error: "Section not found" });
+        return res.status(404).json({ error: "Section not found in category" });
       }
 
+      // Find the index of the subsection to delete
+      const subsectionIndexToDelete = section.subsections.findIndex(
+        (subsection) => subsection._id.toString() === subsectionId
+      );
+
+      if (subsectionIndexToDelete === -1) {
+        return res
+          .status(404)
+          .json({ error: "subsection not found in section" });
+      }
+
+      // Delete products associated with the subsection
+
+      await Product.deleteMany({ subsections: subsectionId }).session(session);
+
       // Remove the subsection from the section's subsections array using .splice()
-      section.subsections.splice(subsectionIndex, 1);
+      if (subsectionIndexToDelete >= 0) {
+        section.subsections.splice(subsectionIndexToDelete, 1);
+      }
+
       await category.save();
 
-      res.status(200).json({ message: "Subsection deleted successfully" });
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(200).json({
+        message: "subsection and associated products deleted successfully",
+      });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to delete subsection" });
+      await session.abortTransaction();
+      session.endSession();
+
+      console.error("Error deleting section and products:", error);
+      res
+        .status(500)
+        .json({ message: "Internal server error", error: error.message });
     }
   }
 );
