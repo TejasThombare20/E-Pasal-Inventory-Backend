@@ -58,7 +58,7 @@ router.get("/fetchAllProduct", async (req, res) => {
       })
     );
 
-    console.log("populatedProducts", populatedProducts);
+    // console.log("populatedProducts", populatedProducts);
 
     res.status(200).json(populatedProducts);
   } catch (error) {
@@ -107,7 +107,7 @@ router.post(
         success = true;
       }
       res.json({ success, savedProduct });
-      console.log("Yes");
+    
     } catch (error) {
       // console.log(error.massage);
       res
@@ -117,7 +117,7 @@ router.post(
     }
   }
 );
-
+const bucketName = 'e-pasal_product';
 router.put("/updateProduct/:id", async (req, res) => {
   try {
     const {
@@ -132,47 +132,162 @@ router.put("/updateProduct/:id", async (req, res) => {
       u_description,
     } = req.body;
 
-    // Create a new product object
-    const newProduct = {};
-    if (u_product_name) newProduct.product_name = u_product_name;
-    if (u_category) newProduct.category = u_category;
-    if (u_sub_category) newProduct.sub_category = u_sub_category;
-    if (u_sub_sub_category) newProduct.sub_sub_category = u_sub_sub_category;
-    if (u_image) newProduct.image = u_image;
-    if (u_price) newProduct.price = u_price;
-    if (u_quantity) newProduct.quantity = u_quantity;
-    if (u_description) newProduct.description = u_description;
-    if (u_barcode) newProduct.barcode = u_barcode;
-
-    // Find the product to be updated and update it
+    // Find the product to be updated
     let product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).send("Product not found");
     }
 
+    if (product.image) {
+      // Extract the filename from the existing image URL
+      const existingImageFileName = product.image.split('/').pop();
+
+      // Delete the existing image from Google Cloud Storage
+      try {
+        await storage.bucket(bucketName).file(existingImageFileName).delete();
+      } catch (error) {
+        console.error("Error deleting existing image:", error.message);
+      }
+    }
+
+    // Get the existing category, section, subsection, and unit IDs
+    const currentCategory = product.category;
+    const currentSection = product.sections;
+    const currentSubsection = product.subsections;
+    const currentUnit = product.unit;
+
     const updateObject = {};
     if (u_product_name) updateObject.product_name = u_product_name;
-    if (u_category) updateObject.category = u_category;
-    if (u_sub_category) updateObject.sub_category = u_sub_category;
-    if (u_sub_sub_category) updateObject.sub_sub_category = u_sub_sub_category;
     if (u_image) updateObject.image = u_image;
     if (u_price) updateObject.price = u_price;
-    if (u_quantity) updateObject.quantity = u_quantity;
+    if (u_quantity) updateObject.unit = u_quantity;
     if (u_description) updateObject.description = u_description;
     if (u_barcode) updateObject.barcode = u_barcode;
 
+    // Update category, section, subsection, and unit based on IDs from the request
+    updateObject.category = u_category || currentCategory;
+    updateObject.sections = u_sub_category || currentSection;
+    updateObject.subsections = u_sub_sub_category || currentSubsection;
+    updateObject.unit = u_quantity || currentUnit; 
     product = await Product.findByIdAndUpdate(req.params.id, updateObject, {
       new: true,
     });
 
-    res.json({ product });
+    // Fetch the names associated with the IDs
+    const categoryData = await Category.findById(updateObject.category);
+    const sectionData = await categoryData.sections.id(updateObject.sections);
+    const subSectionData = await sectionData.subsections.id(updateObject.subsections);
+    const unitData = await Unit.findById(updateObject.unit);
+    const responseProduct = {
+      ...product.toObject(),
+      category: categoryData.name,
+      sections: sectionData.name,
+      subsections: subSectionData.name,
+      unit: unitData.name,
+    };
+
+    console.log("responseProduct", responseProduct);
+
+    res.json({ product: responseProduct });
   } catch (error) {
     res
       .status(500)
       .send({ Message: "Internal server error", Error: error.message });
   }
 });
+
+
+// router.put("/updateProduct/:id", async (req, res) => {
+//   try {
+//     const {
+//       u_product_name,
+//       u_category,
+//       u_sub_category,
+//       u_sub_sub_category,
+//       u_image,
+//       u_price,
+//       u_barcode,
+//       u_quantity,
+//       u_description,
+//     } = req.body;
+
+//     // Create a new product object
+//     const newProduct = {};
+//     if (u_product_name) newProduct.product_name = u_product_name;
+//     if (u_category) newProduct.category = u_category;
+//     if (u_sub_category) newProduct.sub_category = u_sub_category;
+//     if (u_sub_sub_category) newProduct.sub_sub_category = u_sub_sub_category;
+//     if (u_image) newProduct.image = u_image;
+//     if (u_price) newProduct.price = u_price;
+//     if (u_quantity) newProduct.quantity = u_quantity;
+//     if (u_description) newProduct.description = u_description;
+//     if (u_barcode) newProduct.barcode = u_barcode;
+
+//     // Find the product to be updated and update it
+//     let product = await Product.findById(req.params.id);
+
+//     if (!product) {
+//       return res.status(404).send("Product not found");
+//     }
+
+//     const updateObject = {};
+//     if (u_product_name) updateObject.product_name = u_product_name;
+//     if (u_category) updateObject.category = u_category;
+//     if (u_sub_category) updateObject.sections = u_sub_category;
+//     if (u_sub_sub_category) updateObject.subsections = u_sub_sub_category;
+//     if (u_image) updateObject.image = u_image;
+//     if (u_price) updateObject.price = u_price;
+//     if (u_quantity) updateObject.units = u_quantity;
+//     if (u_description) updateObject.description = u_description;
+//     if (u_barcode) updateObject.barcode = u_barcode;
+
+//     product = await Product.findByIdAndUpdate(req.params.id, updateObject, {
+//       new: true,
+//     });
+//     let categoryData = null ;
+//     let sectionData = null ;
+//     let subSectionData = null ;
+//     let responseProduct = { ...product.toObject() };
+
+//     if(updateObject.category)
+//     {
+
+//       categoryData = await Category.findById(updateObject.category)
+      
+//       console.log("categoryName",categoryData.name)
+      
+//       if(updateObject.sections)
+//       {
+
+//         sectionData = await categoryData.sections.id(updateObject.sections)
+        
+//         console.log("sectionName",sectionData.name);
+//         if(updateObject.subsections){
+          
+//           subSectionData = await sectionData.subsections.id(updateObject.subsections) 
+//           console.log("subSectionName",subSectionData.name) 
+//         }
+//       }
+      
+//       responseProduct = {
+//         ...product.toObject(),
+//         category: categoryData.name,
+//         sections: sectionData.name,
+//         subsections: subSectionData.name,
+//       };
+//     }
+
+    
+//     console.log("responseProduct", responseProduct);
+
+//     res.json({ product :product });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .send({ Message: "Internal server error", Error: error.message });
+//   }
+// });
 
 // router.delete("/deleteProduct/:id", async (req, res) => {
 //   try {
