@@ -1,0 +1,184 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "e-Pasal Backend API"
+basePath: "/https://e-pasal-inventory-backend.onrender.com"
+schemes:
+  - "http"
+  - "https"
+paths:
+  /fetchAllProduct:
+    get:
+      summary: "Fetch all products with pagination"
+      parameters:
+        - name: page
+          in: query
+          description: "Page number for pagination"
+          required: true
+          type: integer
+          format: int32
+      responses:
+        200:
+          description: "Success"
+        500:
+          description: "Internal Server Error"      
+
+  /addProduct:
+    post:
+      summary: "Add a new product"
+      parameters:
+        - name: body
+          in: body
+          description: "Product data to add"
+          required: true
+          schema:
+            $ref: "#/definitions/AddProductRequest"
+      responses:
+        200:
+          description: "Success"
+          
+        500:
+          description: "Internal Server Error"
+
+  /updateProduct/{id}:
+    put:
+      summary: "Update a product"
+      parameters:
+        - name: id
+          in: path
+          description: "Product ID to update"
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: "Product data to update"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateProductRequest"
+      responses:
+        200:
+          description: "Success"
+         
+        404:
+          description: "Product not found"
+        500:
+          description: "Internal Server Error"
+
+  /deleteProduct/{id}:
+    delete:
+      summary: "Delete a product"
+      parameters:
+        - name: id
+          in: path
+          description: "Product ID to delete"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+        404:
+          description: "Product not found or not allowed"
+        500:
+          description: "Internal Server Error"
+
+  /search:
+    get:
+      summary: "Search products, categories, and units"
+      parameters:
+        - name: query
+          in: query
+          description: "Query string for search"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Product"
+
+definitions:
+  Product:
+    type: object
+    properties:
+      _id:
+        type: string
+      product_name:
+        type: string
+      category:
+        type: string
+      sections:
+        type: string
+      subsections:
+        type: string
+      image:
+        type: string
+      unit:
+        type: string
+      price:
+        type: number
+      barcode:
+        type: string
+      description:
+        type: string
+
+  AddProductRequest:
+    type: object
+    properties:
+      product_name:
+        type: string
+      category:
+        type: string
+      sections:
+        type: string
+      subsections:
+        type: string
+      image:
+        type: string
+      unit:
+        type: string
+      price:
+        type: number
+      barcode:
+        type: string
+      description:
+        type: string
+
+  AddProductResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      savedProduct:
+        $ref: "#/definitions/Product"
+
+  UpdateProductRequest:
+    type: object
+    properties:
+      u_product_name:
+        type: string
+      u_category:
+        type: string
+      u_sub_category:
+        type: string
+      u_sub_sub_category:
+        type: string
+      u_image:
+        type: string
+      u_price:
+        type: number
+      u_barcode:
+        type: string
+      u_quantity:
+        type: string
+      u_description:
+        type: string
+
+  DeleteProductResponse:
+    type: object
+    properties:
+      Success:
+        type: string
+      product:
+        $ref: "#/definitions/Product"

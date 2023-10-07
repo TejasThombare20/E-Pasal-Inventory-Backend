@@ -1,0 +1,124 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "User Authentication API"
+basePath: "/api/auth"
+schemes:
+  - "http"
+  - "https"
+paths:
+  /createuser:
+    post:
+      summary: "Create a new user"
+      parameters:
+        - name: body
+          in: body
+          description: "User data to create"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateUserRequest"
+      responses:
+        200:
+          description: "User created successfully"
+          schema:
+            $ref: "#/definitions/AuthResponse"
+        400:
+          description: "User with this email already exists"
+        500:
+          description: "Internal Server Error"
+
+  /login:
+    post:
+      summary: "Authenticate a user"
+      parameters:
+        - name: body
+          in: body
+          description: "Login credentials"
+          required: true
+          schema:
+            $ref: "#/definitions/LoginRequest"
+      responses:
+        200:
+          description: "User authenticated successfully"
+          schema:
+            $ref: "#/definitions/AuthResponse"
+        400:
+          description: "Invalid login credentials"
+        500:
+          description: "Internal Server Error"
+
+  /getuser:
+    post:
+      summary: "Get logged-in user details"
+      parameters:
+        - name: Authorization
+          in: header
+          description: "Authorization header with JWT token"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/User"
+
+definitions:
+  CreateUserRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+        description: "First name of the user"
+      last_name:
+        type: string
+        description: "Last name of the user"
+      email:
+        type: string
+        description: "Email of the user"
+      password:
+        type: string
+        description: "Password of the user"
+      image:
+        type: string
+        description: "Image URL of the user"
+
+  LoginRequest:
+    type: object
+    properties:
+      email:
+        type: string
+        description: "Email of the user"
+      password:
+        type: string
+        description: "Password of the user"
+
+  AuthResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: "Indicates if the authentication was successful"
+      authtoken:
+        type: string
+        description: "JWT token for authentication"
+
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      first_name:
+        type: string
+        description: "First name of the user"
+      last_name:
+        type: string
+        description: "Last name of the user"
+      email:
+        type: string
+        description: "Email of the user"
+      image:
+        type: string
+        description: "Image URL of the user"

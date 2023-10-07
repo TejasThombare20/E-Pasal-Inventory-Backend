@@ -1,0 +1,108 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Unit Management API"
+basePath: "/https://e-pasal-inventory-backend.onrender.com"
+schemes:
+  - "http"
+  - "https"
+paths:
+  /addUnit:
+    post:
+      summary: "Add a new unit"
+      parameters:
+        - name: body
+          in: body
+          description: "Unit data to add"
+          required: true
+          schema:
+            $ref: "#/definitions/AddUnitRequest"
+      responses:
+        201:
+          description: "Unit created successfully"
+          schema:
+            $ref: "#/definitions/Unit"
+        500:
+          description: "Internal Server Error"
+
+  /updateUnit/{unitId}:
+    put:
+      summary: "Update a unit"
+      parameters:
+        - name: unitId
+          in: path
+          description: "Unit ID to update"
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: "Unit data to update"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateUnitRequest"
+      responses:
+        200:
+          description: "Unit updated successfully"
+          schema:
+            $ref: "#/definitions/Unit"
+        404:
+          description: "Unit not found"
+        500:
+          description: "Internal Server Error"
+
+  /deleteUnit/{unitId}:
+    delete:
+      summary: "Delete a unit"
+      parameters:
+        - name: unitId
+          in: path
+          description: "Unit ID to delete"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Unit deleted successfully"
+        404:
+          description: "Unit not found"
+        500:
+          description: "Internal Server Error"
+
+  /getAllUnits:
+    get:
+      summary: "Get all units"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Unit"
+        500:
+          description: "Internal Server Error"
+
+definitions:
+  Unit:
+    type: object
+    properties:
+      _id:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      name:
+        type: string
+        description: "Name of the unit"
+
+  AddUnitRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the unit"
+
+  UpdateUnitRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the unit"
