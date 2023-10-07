@@ -3,4 +3,4 @@
 .env
 /.env
 /e-pasal_gcs.json
-/config
+config/
