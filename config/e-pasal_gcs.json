@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "epasal-product-library",
+  "private_key_id": "89435c5db6df3874902c11060295abf8887fc894",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQColGSEIvd9vTrX\nu5RzgxEgipjyR9JIseruD438zxdWkzS68q83kpjUJVqa3nIaUJe2MVhwiT0GLfmw\nQkCNFS4O0X3Eg/PY+bhy07MerQvBdiUx+ntsostN1WEdKqPXsoSn7DKHL4o97Brf\nYMjDlTxjQrTcW2b4JoN28XPckJwstnaPShI7B0IXz/NKIvBMkatGGdumBX/Bs8bA\nrnVG4t1ydWwuXa7ifeG90Yawi+SBf8EKFGH7fD9XHY4nZUqc/q+tjXaE7/jdfhRP\nX5NSOhwvqxaXbayQVn2Pr+xwAiARIINRFuRbqkmqUE0ldpaBv1N01MyUINGbXqjB\nY56Z6Lt9AgMBAAECggEACGkk7bHH6spU4/wMH0pAAcFgeaALNgzIZZm5kg4sAioE\nhLpEcy+Zd+YoM9da1oTEWPbzzGOQe50yGrDngxJ2Mo+RqIsT0LS+1t3Ij0R/dGbG\nWsy+OTCTF55IgtnEhGe39h/S8os06Lt9qLztr1JkCajDmMXnqIRVZUsNJolBfXqF\nSYhKx/UJ5HECut/NV8k2+GBe8BflFAk2fwjJ1Fr74z/mVylukcZBsUEMVmjJeDRq\nSdHwVSsnck/8PMy1fzYgsr1MOMTJ+UG7Ibnp/+2ftIaw8AMRhdIj01/FBOvDN68N\nx4XX4WXXuDiIAR2JPM6qPW6nIaCBOUE6k/IhG7Zc0QKBgQDVi3CkFPbguegj5m0k\nRDJhDw2KRol0267EIwQ1OfK45YgT4PJLcyl+Nkp6Z6Yj0rJ5SQWfMURzUb/rEgh2\nHD86z+ni68oWwXzqyceKlhbbAjnTyc9XKLqad2cY2Fyr4PnTmYSietZ9c8OLqHQI\n+VaWiCYGOUHB8NydOtlLJVaNrQKBgQDKGGormWyGIIz0668L+NOTI2OrMqy1RT2i\nKJgTw6uE5FG6ym7Lr59HcNe95ZKOSDUUD+Gh4PGUCzQ3RUhLQr/Q3vhkFqbLQ4HT\nniKijgNg8/GqQIiBsDafY7Z3HOY2FgTd028meemm5rrGVL6RB3erM/ovnkBzSzB+\n9J/QNXL/EQKBgEOFLX6UKmNwJNiFGWloLs3FprBcEUZj1+SodcImqnqQCPDQJYx5\nw1rm67G8aCnXixsSXbayK0STSq2XLBm8YLnF19wqVeHQGCFc370QK/XfxE0U+HxE\noowIyQ5wCw1Fu3iOiAOf94X/PotAHkBgJmK+dddt7z7VW8xTOTWrfqyZAoGBAK6D\nBqs/gQcRdKbKHg4ogAq+tIJQ7/JYKDCu/SOUA7htsGWsCKC6tr/qIWJJq5RRpgP8\n8snmhLViN2TC3vqeWST0ZWmIZd+AG8uw8heMqj4+aKCruTTEBWb9o8KXofNycCFd\nQs3m2GzXMNGyvBxgZmXgLFqSPPVSKD543sfcX8EBAoGAUWvRkqU8m+RjHYdGeSf1\nnWa5t83gHbd8wuT2OeGh+ZYXUI8OaqHVG5m6LFSPTZYe8pXoywQI8aDLkOR0BS0A\nQjSnjXGAJxW4HbF3DRlAhmOPg4oWzIgMYXe0pbs33x1KVWVsei9+KuC0d12u7JKF\nOQWWNVrSw9Gx656ZMf4e+s8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "e-pasal-465@epasal-product-library.iam.gserviceaccount.com",
+  "client_id": "114359580399204721950",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/e-pasal-465%40epasal-product-library.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
